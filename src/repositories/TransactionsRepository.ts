@@ -15,6 +15,8 @@ interface Balance {
 class TransactionsRepository {
   private transactions: Transaction[];
 
+  balance = 0;
+
   constructor() {
     this.transactions = [];
   }
@@ -23,14 +25,38 @@ class TransactionsRepository {
     return this.transactions;
   }
 
-  public getBalance({ income, outcome, total }): Balance {
+  public getBalance(): Balance {
     const incomeSum = this.transactions.reduce(
-      function (acumulador, array) {},
-      {
-        allIncome: [],
-        allOutcome: [],
+      (total: number, transaction: Transaction): number => {
+        if (transaction.type === 'income') {
+          const income = total + transaction.value;
+          return income;
+        }
+        return total;
       },
+      0,
     );
+
+    const outcomeSum = this.transactions.reduce(
+      (total: number, transaction: Transaction): number => {
+        if (transaction.type === 'outcome') {
+          const outcome = total + transaction.value;
+          return outcome;
+        }
+        return total;
+      },
+      0,
+    );
+
+    this.balance = incomeSum - outcomeSum;
+
+    const resume = {
+      income: incomeSum,
+      outcome: outcomeSum,
+      total: this.balance,
+    };
+
+    return resume;
   }
 
   public create({ title, value, type }: CreateTransactionDTO): Transaction {
